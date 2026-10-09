@@ -587,7 +587,7 @@ Lessen hebben de status VOORGESTELD, ACTIEF of UIT. Alleen ACTIEF gaat mee in pr
 
 ## 9. Datamodel (SQLite)
 
-Alle sleutels zijn UUID-tekst; tijden zijn ISO-8601-tekst in UTC; JSON-velden zijn `TEXT` met JSON. Migraties staan genummerd in `src-tauri/migrations/NNNN_name.sql` en worden zowel door Tauri als door de tests (better-sqlite3) gebruikt.
+Alle sleutels zijn UUID-tekst; tijden zijn ISO-8601-tekst in UTC; JSON-velden zijn `TEXT` met JSON. Migraties staan genummerd in `src-tauri/migrations/NNNN_name.sql` en worden zowel door Tauri als door de tests (node:sqlite) gebruikt.
 
 | Tabel | Velden |
 | --- | --- |
@@ -625,7 +625,7 @@ Statusovergangen (`src/core/assessment/status.ts`): IDEE → BEOORDEELD → LOOP
 | --- | --- |
 | App | Tauri 2, macOS-doel. React 18+, TypeScript strict, Vite, Tailwind. |
 | Opslag | SQLite via `tauri-plugin-sql` 2.5 (feature `sqlite`, gebundelde SQLite met FTS5), genummerde migraties in `src-tauri/migrations`, ingeladen met `include_str!`. Capability: `sql:default` plus `sql:allow-execute`. |
-| Data-toegang | `src/db/` met een `Db`-interface (`execute`, `select`). Implementaties: Tauri (`@tauri-apps/plugin-sql`), Node/tests (`better-sqlite3`) en een browser-implementatie (`sql.js`) voor de Playwright-rooktest en ontwikkeling in de browser zonder Tauri. Repositories in `src/db/repos/` gebruiken alleen de interface. |
+| Data-toegang | `src/db/` met een `Db`-interface (`execute`, `select`). Implementaties: Tauri (`@tauri-apps/plugin-sql`), Node/tests (`node:sqlite`) en een browser-implementatie (`sql.js`) voor de Playwright-rooktest en ontwikkeling in de browser zonder Tauri. Repositories in `src/db/repos/` gebruiken alleen de interface. |
 | Kern | `src/core`: geen import van React, Tauri of `src/ai`/`src/db`. Volledig gedekt met Vitest. |
 | Diagram | `@xyflow/react` 12 met automatische opmaak via `elkjs` (ondersteunt geneste knopen, nodig voor banen per rol). Banen zijn groepsknopen; stappen krijgen `parentId` van hun baan. |
 | AI | `@anthropic-ai/sdk` + Zod; alles via `src/ai` met de `AiClient`-interface. |
@@ -633,7 +633,7 @@ Statusovergangen (`src/core/assessment/status.ts`): IDEE → BEOORDEELD → LOOP
 | API-sleutel | Opgeslagen in de macOS-sleutelhanger via eigen Tauri-commando's met de `keyring`-crate 4.x (`set_api_key`, `has_api_key`, `delete_api_key`, `get_api_key`), achter een Rust-trait zodat tests een geheugen-opslag gebruiken. De sleutel staat niet in de database, de repo, logbestanden of `localStorage`. Hij wordt per AI-aanroep opgehaald en niet in React-state bewaard. In browser-dev (zonder Tauri) komt de sleutel uit `sessionStorage` en verdwijnt hij bij sluiten. |
 | Bestanden | `fflate` (zip voor `.vsdx`, deflate voor draw.io), `fast-xml-parser` (draw.io, vsdx), `bpmn-moddle` 10 (BPMN, ESM, werkt zonder DOM), `mammoth` (`.docx` → tekst), `read-excel-file` (`.xlsx`; het npm-pakket `xlsx` is verouderd en heeft bekende kwetsbaarheden), `papaparse` (CSV). Mermaid met een eigen parser: er is geen losse flowchart-parser beschikbaar. |
 | Export | Markdown door eigen code; PDF met `jspdf` (diagram als PNG via `html-to-image`). Opslaan via `@tauri-apps/plugin-dialog` (`save`) en `@tauri-apps/plugin-fs` (`writeFile`). |
-| Tests | Vitest (kern, parsers, repos met better-sqlite3, AI-module met nep-`fetch`), Playwright-rooktest tegen de Vite-build met `sql.js` en de nep-AI. |
+| Tests | Vitest (kern, parsers, repos met node:sqlite, AI-module met nep-`fetch`), Playwright-rooktest tegen de Vite-build met `sql.js` en de nep-AI. |
 
 ### 10.1 Foutmeldingen (Nederlands)
 

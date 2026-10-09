@@ -23,7 +23,7 @@ Ontwikkelomgeving: Linux-container (geen scherm, geen macOS). Daar kan: Vitest, 
 **Oplevering**
 - Tauri 2-project (React + TS strict + Vite + Tailwind), `npm run tauri dev` start de app.
 - Migratie `0001_init.sql` met alle tabellen uit SPEC §9 (FTS-tabel in een aparte migratie `0002_fts.sql`, die bij ontbrekende FTS5 overgeslagen kan worden).
-- `src/db`: `Db`-interface, implementaties Tauri / better-sqlite3 (tests) / sql.js (browser), `settingsRepo`.
+- `src/db`: `Db`-interface, implementaties Tauri / node:sqlite (tests) / sql.js (browser), `settingsRepo`.
 - `src/core/model`: types (SPEC §3) en `validateModel` (§3.1) met tests per foutcode.
 - `src/ai`: `AiClient`-interface, `fake.ts`, `claude.ts` met alleen `testConnection`, foutvertaling naar `AiError` (getest met nep-`fetch`).
 - Rust: `keyring`-commando's achter een trait, `tauri-plugin-sql`, `tauri-plugin-http` met scope `https://api.anthropic.com/*`.
@@ -32,7 +32,7 @@ Ontwikkelomgeving: Linux-container (geen scherm, geen macOS). Daar kan: Vitest, 
 
 **Bestanden**: `package.json`, `vite.config.ts`, `tsconfig*.json`, `eslint.config.js`, `tailwind`-config, `src/main.tsx`, `src/App.tsx`, `src/screens/*`, `src/db/**`, `src/core/model/**`, `src/ai/{types,fake,claude,errors}.ts`, `src-tauri/**`, `src-tauri/migrations/0001_init.sql`, `tests/**`.
 
-**Controle (Claude)**: typecheck, lint, test, build; `cargo check` in `src-tauri`; test die alle migraties op better-sqlite3 draait en het schema controleert.
+**Controle (Claude)**: typecheck, lint, test, build; `cargo check` in `src-tauri`; test die alle migraties op node:sqlite draait en het schema controleert.
 
 **Handmatig (Patrick, op de Mac)**: `npm install && npm run tauri dev`; API-sleutel invoeren, app herstarten, „Test verbinding” geeft groen; in Sleutelhangertoegang staat het item `nl.procesverbetering.app`; het databasebestand bevat geen sleutel.
 
@@ -40,10 +40,11 @@ Ontwikkelomgeving: Linux-container (geen scherm, geen macOS). Daar kan: Vitest, 
 - Versies: Tauri 2.12, React 19, Vite 8, Tailwind 4, Vitest 5, Zod 4, `@anthropic-ai/sdk` 0.132. TypeScript **6.0** in plaats van 7, omdat typescript-eslint 7 nog niet ondersteunt.
 - „Test verbinding” gebruikt de Models API (`models.retrieve`): controleert sleutel én model en kost geen tokens. „Modellen ophalen” vult de modelkeuze via `models.list`.
 - `AiClient` heeft in fase 1 alleen `testConnection` en `listModels`; de overige methoden uit SPEC §7.1 komen in de fase waarin ze nodig zijn.
-- sql.js (browser/Playwright) heeft geen FTS5. Migratie 2 is daarom optioneel in de TS-runner en wordt daar overgeslagen; de terugval op labels volgt in fase 5. In Tauri en better-sqlite3 is FTS5 aanwezig (getest).
+- sql.js (browser/Playwright) heeft geen FTS5. Migratie 2 is daarom optioneel in de TS-runner en wordt daar overgeslagen; de terugval op labels volgt in fase 5. In Tauri en node:sqlite is FTS5 aanwezig (getest).
 - Tabel `cases` heeft een extra kolom `lessons` voor de full-text index (SPEC §9 bijgewerkt).
 - Buiten Tauri staat de API-sleutel in `sessionStorage` (alleen voor browser-dev); `?fakeAi=1` in de URL kiest de nep-AI.
 - Rust: `keyring` 4.2 achter de trait `SecretStore` (tests met `MemoryStore`).
+- Tests gebruiken de ingebouwde `node:sqlite` (Node ≥ 22.13) in plaats van `better-sqlite3`, zodat `npm install` op de Mac geen Python of C++-compilatie nodig heeft.
 
 ## Fase 2 — Verbetering beoordelen
 
@@ -55,7 +56,7 @@ Ontwikkelomgeving: Linux-container (geen scherm, geen macOS). Daar kan: Vitest, 
 - Schermen: bord per status, nieuw idee, doorvragen (max. 5), beoordeling met rekensommen en overschrijven, stappenplan bewerken.
 - Overschrijvingen opgeslagen in `overrides` (verwerking in fase 5).
 
-**Controle (Claude)**: tabelgestuurde tests met randgevallen op elke drempel (I = 5, E = 5, bandgrenzen 1.000/5.000/…); tests voor elke regel R1–R7; drie voorbeeldideeën die met de nep-AI de hele lus doorlopen tot en met een stappenplan (integratietest met better-sqlite3).
+**Controle (Claude)**: tabelgestuurde tests met randgevallen op elke drempel (I = 5, E = 5, bandgrenzen 1.000/5.000/…); tests voor elke regel R1–R7; drie voorbeeldideeën die met de nep-AI de hele lus doorlopen tot en met een stappenplan (integratietest met node:sqlite).
 
 **Handmatig**: één echt idee invoeren met de echte API, een schatting overschrijven, stappenplan aanpassen.
 
