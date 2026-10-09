@@ -18,5 +18,7 @@ export default defineConfig({
   build: {
     target: 'safari15',
     sourcemap: false,
+    // Desktop app: the bundle is loaded from disk, so chunk size does not affect load time.
+    chunkSizeWarningLimit: 1500,
   },
 });

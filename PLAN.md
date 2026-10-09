@@ -10,7 +10,7 @@ Ontwikkelomgeving: Linux-container (geen scherm, geen macOS). Daar kan: Vitest, 
 | --- | --- | --- |
 | 0 Specificatie | klaar | SPEC.md, PLAN.md, CLAUDE.md |
 | 1 Fundament | klaar (wacht op handmatige controle) | zie *Afwijkingen fase 1* |
-| 2 Verbetering beoordelen | open | |
+| 2 Verbetering beoordelen | klaar (wacht op handmatige controle) | zie *Afwijkingen fase 2* |
 | 3 Proces invoeren en tonen | open | |
 | 4 Procesanalyse | open | |
 | 5 Leerlus | open | |
@@ -59,6 +59,17 @@ Ontwikkelomgeving: Linux-container (geen scherm, geen macOS). Daar kan: Vitest, 
 **Controle (Claude)**: tabelgestuurde tests met randgevallen op elke drempel (I = 5, E = 5, bandgrenzen 1.000/5.000/…); tests voor elke regel R1–R7; drie voorbeeldideeën die met de nep-AI de hele lus doorlopen tot en met een stappenplan (integratietest met node:sqlite).
 
 **Handmatig**: één echt idee invoeren met de echte API, een schatting overschrijven, stappenplan aanpassen.
+
+**Afwijkingen fase 2**
+- Structured outputs: eigen omzetting Zod → JSON-schema (`src/ai/outputFormat.ts`) zodat `enum` echt wordt afgedwongen; aanroep via `messages.create` en eigen JSON-parse + Zod-controle, zodat `refusal` en `max_tokens` herkend worden vóór het parsen. Client-timeout 15 minuten zodat de herhaalpoging met dubbele `max_tokens` zonder streaming mag.
+- Server-side terugval (`fallbacks: "default"`, beta `server-side-fallback-2026-07-01`) standaard aan; weigert het model dat, dan valt de app voor de rest van de sessie terug op een gewone aanroep.
+- Visgraat als vast object met zes lijsten (geen `z.record`; open maps worden niet ondersteund).
+- Het stappenplan-schema wordt per route gebouwd: `phase` is een enum van de fasen van dat sjabloon.
+- Orkestratie in `src/services/improvementService.ts` (AI + kern + database); integratietests daarop met `node:sqlite` en de nep-AI.
+- Toestemming: AI-knoppen vragen eenmalig per idee om bevestiging (`ai_consent`), naast de algemene instelling.
+- Eén actuele beoordeling per verbetering; Claudes ruwe schatting blijft bewaard, overschrijvingen gaan per veld naar `overrides`.
+- Correctiefactoren worden al door `assess()` ondersteund (getest), maar pas in fase 5 gevuld; het scherm toont „nog te weinig data”.
+- Opeenvolgende schrijfacties (bv. stappenplan + stappen) zijn niet in één transactie: de Tauri SQL-plugin gebruikt een pool. Acceptabel voor één gebruiker; herzien als het problemen geeft.
 
 ## Fase 3 — Proces invoeren en tonen
 

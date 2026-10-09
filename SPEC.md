@@ -395,7 +395,7 @@ export type AiResult<T> = { ok: true; data: T; meta: AiMeta } | { ok: false; err
 export interface AiMeta { model: string; promptId: string; promptVersion: number; inputTokens: number; outputTokens: number }
 ```
 
-- `src/ai/claude.ts`: echte implementatie met `@anthropic-ai/sdk`, `client.messages.parse` met `output_config.format = zodOutputFormat(schema)`. Na het parsen wordt het resultaat nóg een keer met hetzelfde Zod-schema gevalideerd (de SDK haalt beperkingen die de API niet kent uit het schema en controleert ze zelf; de app vertrouwt alleen zijn eigen controle). Mislukt dat: `SCHEMA`-fout, geen gedeeltelijke verwerking.
+- `src/ai/claude.ts`: echte implementatie met `@anthropic-ai/sdk` (`messages.create`) en `output_config.format` met een JSON-schema uit `src/ai/outputFormat.ts`. Die omzetting behoudt `enum`/`const` (de SDK-helper zet `enum` om naar een beschrijving, waardoor de API het niet afdwingt) en verwijdert alleen wat structured outputs niet ondersteunt (min/max, lengtes, `maxItems`, enz.). De app parset de tekst zelf en valideert met hetzelfde Zod-schema. Mislukt dat: `SCHEMA`-fout, geen gedeeltelijke verwerking.
 - `stop_reason === 'refusal'` → `REFUSAL`; `max_tokens` → één nieuwe poging met dubbele `max_tokens`, daarna `SCHEMA`.
 - Model is een instelling (standaard `claude-opus-5-5`). Effort per aanroep: `low` voor `clarify`, `medium` voor `estimate`, `plan`, `extractProcess`, `high` voor `suggest` en `proposeLessons`.
 - Waar de API het ondersteunt wordt de server-side terugval `fallbacks: "default"` meegestuurd (beta-header `server-side-fallback-2026-07-01`). Wordt de beta-route geweigerd, dan valt de module terug op een gewone aanroep.
@@ -467,16 +467,17 @@ export const ActionPlanDraft = z.object({
   baseline: z.number().nullable(), target: z.number().nullable(),
   measureMoment: z.string(),
   steps: z.array(z.object({
-    phase: z.string(),                                  // moet een fase uit het sjabloon zijn
+    phase: z.enum(phasesOfRoute),                       // schema per route gebouwd: alleen fasen uit het sjabloon
     what: z.string(), owner: z.string(),
     dueInDays: z.number().int().min(0).max(730),        // code rekent om naar datum
     deliverable: z.string(),
   })).min(1).max(30),
   fiveWhys: z.array(z.object({ why: z.string(), answer: z.string() })).max(5).nullable(),
-  fishbone: z.record(
-    z.enum(['MENS', 'METHODE', 'MIDDELEN', 'MATERIAAL', 'METING', 'OMGEVING']),
-    z.array(z.string()),
-  ).nullable(),
+  // Vast object in plaats van z.record: structured outputs ondersteunt geen open maps.
+  fishbone: z.object({
+    MENS: z.array(z.string()), METHODE: z.array(z.string()), MIDDELEN: z.array(z.string()),
+    MATERIAAL: z.array(z.string()), METING: z.array(z.string()), OMGEVING: z.array(z.string()),
+  }).nullable(),
 });
 
 // 7.6 Proces uit tekst, docx, afbeelding of pdf

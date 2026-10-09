@@ -1,4 +1,6 @@
-// AI module contract (SPEC.md §7.1). Later phases add clarify/estimate/plan/extract/suggest/lessons.
+// AI module contract (SPEC.md §7.1). Later phases add extract/suggest/lessons.
+import type { ClarifyInput, EstimateInput, PlanInput } from './input';
+import type { ActionPlanDraft, Clarification, Estimation } from './schemas';
 
 export type AiErrorCode =
   | 'NO_API_KEY'
@@ -27,7 +29,8 @@ export interface AiMeta {
   outputTokens: number;
 }
 
-export type AiResult<T> = { ok: true; data: T; meta: AiMeta } | { ok: false; error: AiError };
+/** On failure `meta` is present when the request reached the point of choosing a model/prompt (for logging). */
+export type AiResult<T> = { ok: true; data: T; meta: AiMeta } | { ok: false; error: AiError; meta?: AiMeta };
 
 export type ConnectionResult =
   { ok: true; model: string; displayName: string } | { ok: false; error: AiError };
@@ -39,4 +42,7 @@ export interface AiClient {
   listModels(): Promise<
     { ok: true; models: { id: string; displayName: string }[] } | { ok: false; error: AiError }
   >;
+  clarify(input: ClarifyInput): Promise<AiResult<Clarification>>;
+  estimate(input: EstimateInput): Promise<AiResult<Estimation>>;
+  plan(input: PlanInput): Promise<AiResult<ActionPlanDraft>>;
 }
