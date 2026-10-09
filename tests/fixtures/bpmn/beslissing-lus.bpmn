@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<definitions xmlns="http://www.omg.org/spec/BPMN/20100524/MODEL" id="defs" targetNamespace="http://example.org">
+  <process id="proc" name="Controle met herwerk">
+    <startEvent id="s" />
+    <task id="intake" name="Intake" />
+    <task id="controle" name="Controle" />
+    <exclusiveGateway id="d" name="Compleet?" />
+    <task id="toekennen" name="Toekennen" />
+    <task id="aanvullen" name="Aanvullen" />
+    <endEvent id="e" />
+    <sequenceFlow id="f1" sourceRef="s" targetRef="intake" />
+    <sequenceFlow id="f2" sourceRef="intake" targetRef="controle" />
+    <sequenceFlow id="f3" sourceRef="controle" targetRef="d" />
+    <sequenceFlow id="f4" name="ja" sourceRef="d" targetRef="toekennen" />
+    <sequenceFlow id="f5" name="nee" sourceRef="d" targetRef="aanvullen" />
+    <sequenceFlow id="f6" sourceRef="aanvullen" targetRef="controle" />
+    <sequenceFlow id="f7" sourceRef="toekennen" targetRef="e" />
+  </process>
+</definitions>

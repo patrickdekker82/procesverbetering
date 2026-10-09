@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<bpmn:definitions xmlns:bpmn="http://www.omg.org/spec/BPMN/20100524/MODEL" id="defs" targetNamespace="http://example.org">
+  <bpmn:process id="proc" name="Aanvraag afhandelen" isExecutable="false">
+    <bpmn:startEvent id="s" name="Start"><bpmn:outgoing>f1</bpmn:outgoing></bpmn:startEvent>
+    <bpmn:task id="a" name="Aanvraag ontvangen" />
+    <bpmn:userTask id="b" name="Aanvraag beoordelen" />
+    <bpmn:sendTask id="c" name="Besluit versturen" />
+    <bpmn:endEvent id="e" name="Einde" />
+    <bpmn:sequenceFlow id="f1" sourceRef="s" targetRef="a" />
+    <bpmn:sequenceFlow id="f2" sourceRef="a" targetRef="b" />
+    <bpmn:sequenceFlow id="f3" sourceRef="b" targetRef="c" />
+    <bpmn:sequenceFlow id="f4" sourceRef="c" targetRef="e" />
+    <bpmn:textAnnotation id="t1"><bpmn:text>Notitie</bpmn:text></bpmn:textAnnotation>
+  </bpmn:process>
+</bpmn:definitions>

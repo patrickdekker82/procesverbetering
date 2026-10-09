@@ -1,0 +1,8 @@
+id,stap,type,rol,systeem,bewerktijd_min,wachttijd_min,frequentie_per_jaar,foutpercentage,waardeklasse,volgende
+s,Start,start,,,,,,,,intake
+intake,Intake,taak,Klantenservice,CRM,10,60,1200,,klantwaarde,controle
+controle,Controle,taak,Backoffice,ERP,"7,5",120,1200,5%,bedrijfsnoodzakelijk,d
+d,Compleet?,beslissing,,,,,,,,toekennen:ja:0.8;aanvullen:nee:0.2
+toekennen,Toekennen,taak,Backoffice,ERP,15,30,960,,klantwaarde,e
+aanvullen,Aanvullen,taak,Klantenservice,,10,1440,240,,geen waarde,controle
+e,Einde,einde,,,,,,,,

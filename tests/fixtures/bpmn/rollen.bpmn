@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<bpmn:definitions xmlns:bpmn="http://www.omg.org/spec/BPMN/20100524/MODEL" id="defs" targetNamespace="http://example.org">
+  <bpmn:collaboration id="c1">
+    <bpmn:participant id="pool" name="Organisatie" processRef="proc" />
+  </bpmn:collaboration>
+  <bpmn:process id="proc" name="Aanvraag met rollen">
+    <bpmn:laneSet id="ls">
+      <bpmn:lane id="ks" name="Klantenservice">
+        <bpmn:flowNodeRef>s</bpmn:flowNodeRef><bpmn:flowNodeRef>i</bpmn:flowNodeRef><bpmn:flowNodeRef>v</bpmn:flowNodeRef><bpmn:flowNodeRef>e</bpmn:flowNodeRef>
+      </bpmn:lane>
+      <bpmn:lane id="bo" name="Backoffice">
+        <bpmn:childLaneSet id="ls2">
+          <bpmn:lane id="bo1" name="Backoffice"><bpmn:flowNodeRef>b</bpmn:flowNodeRef></bpmn:lane>
+          <bpmn:lane id="tl" name="Teamleider"><bpmn:flowNodeRef>g</bpmn:flowNodeRef></bpmn:lane>
+        </bpmn:childLaneSet>
+      </bpmn:lane>
+    </bpmn:laneSet>
+    <bpmn:startEvent id="s" />
+    <bpmn:userTask id="i" name="Intake" />
+    <bpmn:userTask id="b" name="Beoordelen" />
+    <bpmn:userTask id="g" name="Goedkeuren" />
+    <bpmn:serviceTask id="v" name="Versturen" />
+    <bpmn:endEvent id="e" />
+    <bpmn:sequenceFlow id="f1" sourceRef="s" targetRef="i" />
+    <bpmn:sequenceFlow id="f2" sourceRef="i" targetRef="b" />
+    <bpmn:sequenceFlow id="f3" sourceRef="b" targetRef="g" />
+    <bpmn:sequenceFlow id="f4" sourceRef="g" targetRef="v" />
+    <bpmn:sequenceFlow id="f5" sourceRef="v" targetRef="e" />
+  </bpmn:process>
+</bpmn:definitions>

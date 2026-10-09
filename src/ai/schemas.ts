@@ -97,3 +97,32 @@ export function actionPlanSchema(phases: [string, ...string[]]) {
   });
 }
 export type ActionPlanDraft = z.infer<ReturnType<typeof actionPlanSchema>>;
+
+// Process read from text, a Word document, an image or a PDF (SPEC §7.6).
+export const ProcessExtractionSchema = z.object({
+  name: z.string(),
+  roles: z.array(z.object({ id: z.string(), name: z.string() })),
+  steps: z
+    .array(
+      z.object({
+        id: z.string(),
+        type: z.enum(['START', 'END', 'TASK', 'DECISION']),
+        name: z.string(),
+        roleId: z.string().nullable(),
+        system: z.string().nullable(),
+        processingTime: z.number().min(0).nullable(),
+        waitingTime: z.number().min(0).nullable(),
+      }),
+    )
+    .min(2),
+  flows: z.array(
+    z.object({
+      from: z.string(),
+      to: z.string(),
+      label: z.string().nullable(),
+      probability: z.number().min(0).max(1).nullable(),
+    }),
+  ),
+  uncertainties: z.array(z.string()),
+});
+export type ProcessExtraction = z.infer<typeof ProcessExtractionSchema>;

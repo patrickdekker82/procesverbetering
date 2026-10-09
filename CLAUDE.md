@@ -12,8 +12,9 @@ Desktop-app voor procesverbetering. Specificatie: SPEC.md. Bouwplan en status: P
 - `src/core` — domeinlogica: model, validatie, import, analysis, rules, assessment, templates, learning
 - `src/ai` — enige plek voor Claude-aanroepen; `prompts/<id>.v<N>.md`, `schemas.ts`, `fake.ts`
 - `src/db` — `Db`-interface, implementaties, repos; migraties in `src-tauri/migrations`
+- `src/services` — orkestratie (AI + kern + database), bestandslezers voor Excel/Word
 - `src/screens`, `src/components` — React
-- `tests/` — Vitest, `tests/fixtures/<formaat>/`; `e2e/` — Playwright; `eval/` — testset
+- `tests/` — Vitest, `tests/fixtures/<formaat>/` (binaire fixtures: `python3 tests/fixtures/make_fixtures.py`); `e2e/` — Playwright; `eval/` — testset
 
 ## Harde regels
 - `src/core` importeert niets uit React, Tauri, `src/ai` of `src/db`.

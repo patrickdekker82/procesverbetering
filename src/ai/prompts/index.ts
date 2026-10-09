@@ -2,20 +2,23 @@
 // the active version here only when its live eval score is not lower (CLAUDE.md).
 import clarifyV1 from './clarify.v1.md?raw';
 import estimateV1 from './estimate.v1.md?raw';
+import extractV1 from './extract.v1.md?raw';
 import planV1 from './plan.v1.md?raw';
 
-export type PromptId = 'clarify' | 'estimate' | 'plan';
+export type PromptId = 'clarify' | 'estimate' | 'plan' | 'extract';
 
 const PROMPTS: Record<PromptId, Record<number, string>> = {
   clarify: { 1: clarifyV1 },
   estimate: { 1: estimateV1 },
   plan: { 1: planV1 },
+  extract: { 1: extractV1 },
 };
 
 export const ACTIVE_VERSIONS: Record<PromptId, number> = {
   clarify: 1,
   estimate: 1,
   plan: 1,
+  extract: 1,
 };
 
 export function getPrompt(

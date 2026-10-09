@@ -1,0 +1,10 @@
+graph TD
+  start((Start)) --> intake[Intake]
+  intake --> controle[Controle]
+  controle --> compleet{Compleet?}
+  compleet -->|ja| toekennen[Toekennen]
+  compleet -- nee --> aanvullen[Aanvullen]
+  aanvullen -.-> controle
+  toekennen --> einde((Einde))
+  classDef groen fill:#0f0;
+  class toekennen groen

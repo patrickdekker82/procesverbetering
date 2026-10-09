@@ -1,0 +1,26 @@
+<mxfile host="app.diagrams.net">
+  <diagram id="p1" name="Rollen">
+    <mxGraphModel>
+      <root>
+        <mxCell id="0" />
+        <mxCell id="1" parent="0" />
+        <mxCell id="pool" value="Aanvraagproces" style="swimlane;childLayout=stackLayout;horizontal=0;" vertex="1" parent="1"><mxGeometry x="0" y="0" width="900" height="480" as="geometry" /></mxCell>
+        <mxCell id="ks" value="Klantenservice" style="swimlane;horizontal=0;" vertex="1" parent="pool"><mxGeometry x="20" y="0" width="880" height="160" as="geometry" /></mxCell>
+        <mxCell id="bo" value="Backoffice" style="swimlane;horizontal=0;" vertex="1" parent="pool"><mxGeometry x="20" y="160" width="880" height="160" as="geometry" /></mxCell>
+        <mxCell id="tl" value="Teamleider" style="swimlane;horizontal=0;" vertex="1" parent="pool"><mxGeometry x="20" y="320" width="880" height="160" as="geometry" /></mxCell>
+        <mxCell id="s" value="" style="ellipse;shape=startState;" vertex="1" parent="ks"><mxGeometry x="40" y="60" width="30" height="30" as="geometry" /></mxCell>
+        <UserObject label="Intake" id="i"><mxCell style="rounded=1;" vertex="1" parent="ks"><mxGeometry x="120" y="50" width="120" height="60" as="geometry" /></mxCell></UserObject>
+        <mxCell id="b" value="Beoordelen" style="rounded=1;" vertex="1" parent="bo"><mxGeometry x="300" y="50" width="120" height="60" as="geometry" /></mxCell>
+        <mxCell id="g" value="Goedkeuren" style="rounded=1;" vertex="1" parent="tl"><mxGeometry x="480" y="50" width="120" height="60" as="geometry" /></mxCell>
+        <mxCell id="v" value="Versturen" style="rounded=1;" vertex="1" parent="ks"><mxGeometry x="640" y="50" width="120" height="60" as="geometry" /></mxCell>
+        <mxCell id="e" value="" style="ellipse;html=1;shape=endState;fillColor=#000000;" vertex="1" parent="ks"><mxGeometry x="800" y="60" width="30" height="30" as="geometry" /></mxCell>
+        <mxCell id="f1" edge="1" parent="pool" source="s" target="i"><mxGeometry relative="1" as="geometry" /></mxCell>
+        <mxCell id="f2" edge="1" parent="pool" source="i" target="b"><mxGeometry relative="1" as="geometry" /></mxCell>
+        <mxCell id="f3" edge="1" parent="pool" source="b" target="g"><mxGeometry relative="1" as="geometry" /></mxCell>
+        <mxCell id="f4" edge="1" parent="pool" source="g" target="v"><mxGeometry relative="1" as="geometry" /></mxCell>
+        <mxCell id="f5" edge="1" parent="pool" source="v" target="e"><mxGeometry relative="1" as="geometry" /></mxCell>
+        <mxCell id="loose" value="los" edge="1" parent="pool" source="v"><mxGeometry relative="1" as="geometry"><mxPoint x="900" y="600" as="targetPoint" /></mxGeometry></mxCell>
+      </root>
+    </mxGraphModel>
+  </diagram>
+</mxfile>

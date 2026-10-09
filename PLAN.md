@@ -11,7 +11,7 @@ Ontwikkelomgeving: Linux-container (geen scherm, geen macOS). Daar kan: Vitest, 
 | 0 Specificatie | klaar | SPEC.md, PLAN.md, CLAUDE.md |
 | 1 Fundament | klaar, handmatig gecontroleerd | zie *Afwijkingen fase 1* |
 | 2 Verbetering beoordelen | klaar, handmatig gecontroleerd met de echte API | zie *Afwijkingen fase 2* |
-| 3 Proces invoeren en tonen | open | |
+| 3 Proces invoeren en tonen | klaar (wacht op handmatige controle) | zie *Afwijkingen fase 3* |
 | 4 Procesanalyse | open | |
 | 5 Leerlus | open | |
 | 6 Afwerking | open | |
@@ -83,6 +83,16 @@ Ontwikkelomgeving: Linux-container (geen scherm, geen macOS). Daar kan: Vitest, 
 **Controle (Claude)**: alle fixtures stap voor stap getest (stappen, types, rollen, flows); kapotte en onbekende bestanden geven `ok: false` met Nederlandse melding; geen half model in de database (test).
 
 **Handmatig**: een eigen Visio (.vsdx of PDF-export) en een draw.io-bestand inladen, corrigeren, bevestigen.
+
+**Afwijkingen fase 3**
+- Diagramopmaak met een eigen, geteste functie (`src/core/layout.ts`: kolommen volgens het langste pad, banen per rol, lussen gestippeld) in plaats van elkjs: voorspelbaar, zonder extra afhankelijkheid. Stappen worden niet gesleept; de opmaak volgt het model.
+- Bewerkingen op het model als zuivere functies (`src/core/model/edit.ts`), getest.
+- Excel (`read-excel-file/universal`) en Word (`mammoth`) worden in de app-laag gelezen (`src/services/fileReaders.ts`); de kern krijgt rijen of tekst. mammoth geeft 3 `npm audit`-meldingen (moderate) in `argparse`/`sprintf-js`, alleen gebruikt door de mammoth-CLI, niet door de bibliotheek.
+- Visio: rollen worden bepaald op positie binnen banen (container-relaties in .vsdx worden niet gelezen); bij meerdere pagina's alleen de eerste. Testbestanden zijn met een script gemaakt (`tests/fixtures/make_fixtures.py`) en nog niet getest met een echt Visio-bestand.
+- draw.io: bij meerdere pagina's alleen de eerste; `UserObject`-cellen komen achteraan in de stappenlijst (geen gevolg voor het diagram).
+- Concepten worden niet opgeslagen: een model wordt pas bewaard bij bevestigen en alleen als het geen validatiefouten heeft. Elke bevestiging is een nieuwe versie.
+- AI-invoer: afbeeldingen tot 5 MB, PDF tot 24 MB; daarboven een melding vóór verzending. Toestemming per concept (`ai_consent`, type PROCESS).
+- Sjabloon downloaden via een opslagdialoog (`tauri-plugin-dialog`) en een eigen Rust-commando `save_text_file`.
 
 ## Fase 4 — Procesanalyse
 

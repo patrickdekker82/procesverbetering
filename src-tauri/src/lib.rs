@@ -45,6 +45,15 @@ fn delete_api_key(state: tauri::State<'_, Secrets>) -> Result<(), String> {
     state.0.delete(API_KEY_ACCOUNT)
 }
 
+/// Writes a text file to a path the user picked in the save dialog (templates, exports).
+#[tauri::command]
+fn save_text_file(path: String, contents: String) -> Result<(), String> {
+    if path.trim().is_empty() {
+        return Err("Geen bestandsnaam gekozen.".into());
+    }
+    std::fs::write(&path, contents).map_err(|e| format!("Opslaan mislukt: {e}"))
+}
+
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
     tauri::Builder::default()
@@ -55,11 +64,13 @@ pub fn run() {
                 .build(),
         )
         .plugin(tauri_plugin_http::init())
+        .plugin(tauri_plugin_dialog::init())
         .invoke_handler(tauri::generate_handler![
             set_api_key,
             has_api_key,
             get_api_key,
-            delete_api_key
+            delete_api_key,
+            save_text_file
         ])
         .run(tauri::generate_context!())
         .expect("error while running Verbeterlus");

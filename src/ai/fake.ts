@@ -1,7 +1,7 @@
 import { aiError } from './errors';
-import type { ClarifyInput, EstimateInput, PlanInput } from './input';
+import type { ClarifyInput, EstimateInput, ExtractInput, PlanInput } from './input';
 import { ACTIVE_VERSIONS, type PromptId } from './prompts';
-import type { ActionPlanDraft, Clarification, Estimation } from './schemas';
+import type { ActionPlanDraft, Clarification, Estimation, ProcessExtraction } from './schemas';
 import type { AiClient, AiErrorCode, AiMeta, AiResult } from './types';
 
 export interface FakeAiOptions {
@@ -239,5 +239,74 @@ export function createFakeAiClient(options: FakeAiOptions = {}): AiClient {
       };
       return result('plan', data);
     },
+
+    async extractProcess(input: ExtractInput) {
+      return result('extract', fakeExtraction(input));
+    },
+  };
+}
+
+/**
+ * Text: one task per sentence or line, in order; "Rol: tekst" sets the role. Images and PDFs give a
+ * fixed three-step process. Deterministic, no network.
+ */
+export function fakeExtraction(input: ExtractInput): ProcessExtraction {
+  const lines =
+    input.source.kind === 'text'
+      ? input.source.text
+          .split(/\n|(?<=\.)\s+/)
+          .map((l) => l.trim().replace(/\.$/, ''))
+          .filter((l) => l.length > 2 && !/^#/.test(l))
+      : [
+          'Klantenservice: Aanvraag ontvangen',
+          'Backoffice: Aanvraag beoordelen',
+          'Klantenservice: Besluit versturen',
+        ];
+  const roles: ProcessExtraction['roles'] = [];
+  const steps: ProcessExtraction['steps'] = [
+    {
+      id: 's0',
+      type: 'START',
+      name: 'Start',
+      roleId: null,
+      system: null,
+      processingTime: null,
+      waitingTime: null,
+    },
+  ];
+  for (const line of lines) {
+    const m = /^([^:]{2,40}):\s*(.+)$/.exec(line);
+    let roleId: string | null = null;
+    if (m) {
+      const existing = roles.find((r) => r.name === m[1]);
+      roleId = existing?.id ?? `r${roles.length + 1}`;
+      if (!existing) roles.push({ id: roleId, name: m[1]! });
+    }
+    steps.push({
+      id: `s${steps.length}`,
+      type: 'TASK',
+      name: m ? m[2]! : line,
+      roleId,
+      system: null,
+      processingTime: null,
+      waitingTime: null,
+    });
+  }
+  steps.push({
+    id: `s${steps.length}`,
+    type: 'END',
+    name: 'Einde',
+    roleId: null,
+    system: null,
+    processingTime: null,
+    waitingTime: null,
+  });
+  return {
+    name: input.hint || 'Ingelezen proces',
+    roles,
+    steps,
+    flows: steps.slice(1).map((s, i) => ({ from: steps[i]!.id, to: s.id, label: null, probability: null })),
+    uncertainties:
+      input.source.kind === 'text' ? [] : ['Nep-AI: vaste voorbeelduitkomst voor afbeeldingen en PDF.'],
   };
 }

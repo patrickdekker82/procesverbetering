@@ -1,10 +1,10 @@
 import Anthropic from '@anthropic-ai/sdk';
 import type { z } from 'zod';
 import { aiError, toAiError } from './errors';
-import { renderClarify, renderEstimate, renderPlan } from './input';
+import { renderClarify, renderEstimate, renderExtract, renderPlan } from './input';
 import { outputFormat } from './outputFormat';
 import { getPrompt, type PromptId } from './prompts';
-import { actionPlanSchema, ClarificationSchema, EstimationSchema } from './schemas';
+import { actionPlanSchema, ClarificationSchema, EstimationSchema, ProcessExtractionSchema } from './schemas';
 import type { AiClient, AiMeta, AiResult, ConnectionResult } from './types';
 
 export interface ClaudeClientOptions {
@@ -25,7 +25,7 @@ const REQUEST_TIMEOUT_MS = 15 * 60 * 1000;
 interface StructuredCall<S extends z.ZodType> {
   promptId: PromptId;
   schema: S;
-  content: string;
+  content: string | ReturnType<typeof renderExtract>;
   effort: Effort;
 }
 
@@ -163,6 +163,14 @@ export function createClaudeClient(options: ClaudeClientOptions): AiClient {
         promptId: 'plan',
         schema: actionPlanSchema(input.phases),
         content: renderPlan(input),
+        effort: 'medium',
+      }),
+
+    extractProcess: (input) =>
+      structured({
+        promptId: 'extract',
+        schema: ProcessExtractionSchema,
+        content: renderExtract(input),
         effort: 'medium',
       }),
   };

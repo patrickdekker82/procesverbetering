@@ -1,6 +1,6 @@
-// AI module contract (SPEC.md §7.1). Later phases add extract/suggest/lessons.
-import type { ClarifyInput, EstimateInput, PlanInput } from './input';
-import type { ActionPlanDraft, Clarification, Estimation } from './schemas';
+// AI module contract (SPEC.md §7.1). Later phases add suggest/lessons.
+import type { ClarifyInput, EstimateInput, ExtractInput, PlanInput } from './input';
+import type { ActionPlanDraft, Clarification, Estimation, ProcessExtraction } from './schemas';
 
 export type AiErrorCode =
   | 'NO_API_KEY'
@@ -45,4 +45,5 @@ export interface AiClient {
   clarify(input: ClarifyInput): Promise<AiResult<Clarification>>;
   estimate(input: EstimateInput): Promise<AiResult<Estimation>>;
   plan(input: PlanInput): Promise<AiResult<ActionPlanDraft>>;
+  extractProcess(input: ExtractInput): Promise<AiResult<ProcessExtraction>>;
 }

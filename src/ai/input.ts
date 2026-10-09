@@ -111,3 +111,39 @@ export function renderPlan(input: PlanInput): string {
     ...contextBlocks(input.similarCases, input.lessons),
   ].join('\n\n');
 }
+
+export type ExtractSource =
+  | { kind: 'text'; text: string; origin: 'TEXT' | 'DOCX' }
+  | { kind: 'image'; mediaType: 'image/png' | 'image/jpeg' | 'image/gif' | 'image/webp'; base64: string }
+  | { kind: 'pdf'; base64: string };
+
+export interface ExtractInput {
+  source: ExtractSource;
+  /** Optional name or context from the user, e.g. the file name. */
+  hint: string;
+}
+
+/** Content blocks for the extract call: document/image first, then the instruction text. */
+export function renderExtract(input: ExtractInput) {
+  const intro = `Lees het proces${input.hint ? ` („${input.hint}”)` : ''} en zet het om naar het procesmodel.`;
+  const { source } = input;
+  if (source.kind === 'text') {
+    return [{ type: 'text' as const, text: `${intro}\n\n${block('procesbeschrijving', source.text)}` }];
+  }
+  if (source.kind === 'image') {
+    return [
+      {
+        type: 'image' as const,
+        source: { type: 'base64' as const, media_type: source.mediaType, data: source.base64 },
+      },
+      { type: 'text' as const, text: intro },
+    ];
+  }
+  return [
+    {
+      type: 'document' as const,
+      source: { type: 'base64' as const, media_type: 'application/pdf' as const, data: source.base64 },
+    },
+    { type: 'text' as const, text: intro },
+  ];
+}
