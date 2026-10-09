@@ -1,0 +1,21 @@
+[package]
+name = "verbeterlus"
+version = "0.1.0"
+description = "Verbeterlus: continue procesverbetering"
+edition = "2021"
+rust-version = "1.90"
+
+[lib]
+name = "verbeterlus_lib"
+crate-type = ["staticlib", "cdylib", "rlib"]
+
+[build-dependencies]
+tauri-build = { version = "2", features = [] }
+
+[dependencies]
+tauri = { version = "2.12", features = [] }
+tauri-plugin-sql = { version = "2.5", features = ["sqlite"] }
+tauri-plugin-http = "2.8"
+keyring = "4.2"
+serde = { version = "1", features = ["derive"] }
+serde_json = "1"

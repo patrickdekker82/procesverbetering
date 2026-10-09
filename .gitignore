@@ -6,3 +6,4 @@ src-tauri/target/
 eval/results/*.live.json
 test-results/
 playwright-report/
+src-tauri/gen/

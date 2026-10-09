@@ -605,7 +605,7 @@ Alle sleutels zijn UUID-tekst; tijden zijn ISO-8601-tekst in UTC; JSON-velden zi
 | `action_plans` | `id`, `improvement_id` FK UNIQUE, `template` (route), `metric`, `unit`, `baseline`, `target`, `measure_moment`, `five_whys_json`, `fishbone_json` |
 | `action_steps` | `id`, `plan_id` FK, `seq`, `phase`, `what`, `owner`, `due_date`, `deliverable`, `done` bool |
 | `outcomes` | `improvement_id` PK/FK, `actual_impact_json`, `actual_annual_benefit`, `actual_hours`, `actual_cost`, `measured_value`, `lessons_text`, `closed_at` |
-| `cases` | `id`, `improvement_id` FK UNIQUE, `title`, `problem`, `solution`, `route`, `domain`, `labels_json`, `predicted_json`, `actual_json`, `created_at` |
+| `cases` | `id`, `improvement_id` FK UNIQUE, `title`, `problem`, `solution`, `lessons`, `route`, `domain`, `labels_json`, `predicted_json`, `actual_json`, `created_at` |
 | `cases_fts` | FTS5-virtuele tabel (`title`, `problem`, `solution`, `lessons`, `labels`), `content='cases'`-achtig bijgehouden door triggers; alleen als FTS5 beschikbaar is |
 | `case_labels` | `case_id` FK, `label` — PK (case_id, label) |
 | `lessons` | `id`, `text`, `applies_to`, `status`, `based_on_case_ids_json`, `created_at`, `updated_at` |

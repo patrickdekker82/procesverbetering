@@ -9,7 +9,7 @@ Ontwikkelomgeving: Linux-container (geen scherm, geen macOS). Daar kan: Vitest, 
 | Fase | Status | Notities |
 | --- | --- | --- |
 | 0 Specificatie | klaar | SPEC.md, PLAN.md, CLAUDE.md |
-| 1 Fundament | open | |
+| 1 Fundament | klaar (wacht op handmatige controle) | zie *Afwijkingen fase 1* |
 | 2 Verbetering beoordelen | open | |
 | 3 Proces invoeren en tonen | open | |
 | 4 Procesanalyse | open | |
@@ -35,6 +35,15 @@ Ontwikkelomgeving: Linux-container (geen scherm, geen macOS). Daar kan: Vitest, 
 **Controle (Claude)**: typecheck, lint, test, build; `cargo check` in `src-tauri`; test die alle migraties op better-sqlite3 draait en het schema controleert.
 
 **Handmatig (Patrick, op de Mac)**: `npm install && npm run tauri dev`; API-sleutel invoeren, app herstarten, „Test verbinding” geeft groen; in Sleutelhangertoegang staat het item `nl.procesverbetering.app`; het databasebestand bevat geen sleutel.
+
+**Afwijkingen fase 1**
+- Versies: Tauri 2.12, React 19, Vite 8, Tailwind 4, Vitest 5, Zod 4, `@anthropic-ai/sdk` 0.132. TypeScript **6.0** in plaats van 7, omdat typescript-eslint 7 nog niet ondersteunt.
+- „Test verbinding” gebruikt de Models API (`models.retrieve`): controleert sleutel én model en kost geen tokens. „Modellen ophalen” vult de modelkeuze via `models.list`.
+- `AiClient` heeft in fase 1 alleen `testConnection` en `listModels`; de overige methoden uit SPEC §7.1 komen in de fase waarin ze nodig zijn.
+- sql.js (browser/Playwright) heeft geen FTS5. Migratie 2 is daarom optioneel in de TS-runner en wordt daar overgeslagen; de terugval op labels volgt in fase 5. In Tauri en better-sqlite3 is FTS5 aanwezig (getest).
+- Tabel `cases` heeft een extra kolom `lessons` voor de full-text index (SPEC §9 bijgewerkt).
+- Buiten Tauri staat de API-sleutel in `sessionStorage` (alleen voor browser-dev); `?fakeAi=1` in de URL kiest de nep-AI.
+- Rust: `keyring` 4.2 achter de trait `SecretStore` (tests met `MemoryStore`).
 
 ## Fase 2 — Verbetering beoordelen
 
