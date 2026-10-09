@@ -12,6 +12,7 @@ Ontwikkelomgeving: Linux-container (geen scherm, geen macOS). Daar kan: Vitest, 
 | 1 Fundament | klaar, handmatig gecontroleerd | zie *Afwijkingen fase 1* |
 | 2 Verbetering beoordelen | klaar, handmatig gecontroleerd met de echte API | zie *Afwijkingen fase 2* |
 | 3 Proces invoeren en tonen | klaar (wacht op handmatige controle) | zie *Afwijkingen fase 3* |
+| 3b Proces tekenen | open | onderbouwing: docs/onderzoek-tekenmodule.md |
 | 4 Procesanalyse | open | |
 | 5 Leerlus | open | |
 | 6 Afwerking | open | |
@@ -93,6 +94,50 @@ Ontwikkelomgeving: Linux-container (geen scherm, geen macOS). Daar kan: Vitest, 
 - Concepten worden niet opgeslagen: een model wordt pas bewaard bij bevestigen en alleen als het geen validatiefouten heeft. Elke bevestiging is een nieuwe versie.
 - AI-invoer: afbeeldingen tot 5 MB, PDF tot 24 MB; daarboven een melding vóór verzending. Toestemming per concept (`ai_consent`, type PROCESS).
 - Sjabloon downloaden via een opslagdialoog (`tauri-plugin-dialog`) en een eigen Rust-commando `save_text_file`.
+
+## Fase 3b — Proces tekenen
+
+Toegevoegd op verzoek van Patrick. Onderzoek en keuzes: `docs/onderzoek-tekenmodule.md`. Deze fase komt vóór fase 4, zodat de analyse haar markeringen meteen op de teken-editor kan tonen.
+
+**Oplevering**
+- `src/core/diagram/` (zuiver, getest):
+  - typen;
+  - `fitText` (meten via een injecteerbare meetfunctie);
+  - `snapToGrid`, `alignmentGuides`, `laneAt`, `nearestSide`;
+  - `modelToDiagram`, `applyDiagramEdit` (model + opmaak samen);
+  - `tidyLayout`;
+  - geschiedenis voor ongedaan maken en opnieuw doen (momentopnames, maximaal 100).
+- `Step.marker` (subproces, document, handmatige invoer, wachten); validatie en importeurs blijven werken. Tekencontroles naast `validateModel`.
+- Migratie `0003_diagram.sql`: tabellen `process_layouts` en `process_drafts`. Repos en service uitbreiden: concept automatisch opslaan, herstellen, opmaak per versie bewaren.
+- Teken-editor (React Flow, zelf gebouwd; **geen Pro-voorbeeldcode**):
+  - palet en snel-toevoegen;
+  - verbindingspunten met vangstraal, verbinden zonder slepen;
+  - raster en hulplijnen, uitlijnen en verdelen;
+  - tekst bewerken in de vorm, met `fitText`;
+  - zwembanen (toevoegen, hernoemen, volgorde, hoogte, rol volgt baan);
+  - selectie en lasso, kopiëren, plakken, dupliceren;
+  - pijltoetsen;
+  - ongedaan maken en opnieuw doen;
+  - zijpaneel met positie en maat;
+  - live controle met markeringen;
+  - Netjes zetten;
+  - export naar PNG en SVG (`html-to-image`).
+- Tabblad *Tekenen* bij Nieuw proces. Het bestaande diagramscherm wordt vervangen door de teken-editor, ook voor geïmporteerde processen. Geïmporteerde coördinaten (draw.io, vsdx, BPMN-DI) worden overgenomen waar die beschikbaar zijn.
+
+**Controle (Claude)**
+- Tests voor alle functies in `src/core/diagram`, met `fitText` op lange Nederlandse labels, ruit en minimumgrootte.
+- Roundtrip: import → opmaak → bewerken → bevestigen; stap-id's en tijden blijven gelijk.
+- Ongedaan maken over alle soorten bewerkingen.
+- Een notitie komt nooit in het model.
+- Playwright-scenario in de browser: met alleen het toetsenbord en snel-toevoegen een proces met beslissing tekenen, zonder validatiefouten. Daarna een concept herstellen na herladen.
+
+**Handmatig (Patrick)**
+- Een bekend proces natekenen.
+- Controleren of lijnen vast blijven zitten en de tekst netjes in de vormen past.
+- Export naar PNG openen.
+- De app afsluiten tijdens het tekenen en het concept herstellen.
+
+**Buiten deze fase:** lijnen die om vormen heen gaan, meerdere pagina's, thema's, vrije vormen, en export naar BPMN, draw.io en PDF (fase 6).
 
 ## Fase 4 — Procesanalyse
 

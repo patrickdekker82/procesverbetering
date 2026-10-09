@@ -59,6 +59,34 @@ Navigatie links: **Verbeteringen**, **Processen**, **Geleerd**, **Instellingen**
 - **Tijden aanvullen**: ontbreken bewerk- of wachttijden, dan vraagt de app voor hooguit vijf stappen een schatting (de stappen op het langste pad met de meeste ontbrekende velden eerst) en toont daarna: „Analyse is kwalitatief: tijden ontbreken voor N stappen.”
 - **Analyse**: kengetallen (tabel), regeltreffers (lijst, per regel de stappen), suggesties in twee kolommen **Makkelijk** en **Moeilijk**. Hover of klik op een suggestie markeert de betrokken stappen in het diagram. Per suggestie: Accepteren, Aanpassen (titel/uitleg/inspanning bewerken), Afwijzen (met reden, verplicht een keuze uit: past niet, al geprobeerd, te duur, klopt niet, anders + vrije tekst), en **Maak verbetering**.
 
+### 2.2a Tekenen (fase 3b)
+
+Onderbouwing en keuzes: `docs/onderzoek-tekenmodule.md`.
+
+- **Eén editor voor tekenen en bewerken.** Elk proces opent in de teken-editor, ook als het geïmporteerd is. Het tabblad *Tekenen* onder Processen → Nieuw proces begint met een leeg canvas.
+- **Palet** (links): eindvorm (start/einde), taak, beslissing, subproces, document, handmatige invoer, wachten, gegevens/systeem, notitie, zwembaan. Slepen naar het canvas, of klikken om de vorm in het midden te plaatsen.
+- **Snel-toevoegen**: bij een geselecteerde vorm verschijnen vier pijltjes. Een klik maakt een nieuwe taak (of de gekozen vorm) in die richting, verbonden en uitgelijnd.
+- **Verbinden**: vier verbindingspunten per vorm, met een vangstraal van 30 px. Een lijn die op de vorm zelf valt, hecht aan het dichtstbijzijnde punt. Ook kan het zonder slepen: klik op de bron, dan *Verbinden*, dan op het doel. Lijnen zijn rechthoekig met afgeronde hoeken, een label (dubbelklik) en een kans in het zijpaneel. Lijnen naar START en vanaf EINDE worden geweigerd.
+- **Uitlijnen**: raster van 10 px voor positie en maat. Hulplijnen op randen en middens van andere vormen (drempel 5 px op het scherm) hebben voorrang op het raster. Er zijn knoppen *Uitlijnen* en *Gelijk verdelen* voor een selectie, en *Netjes zetten* voert `layoutModel()` uit.
+- **Tekst**:
+  - één lettergrootte (13 px) voor de hele tekening, afbreken op woorden, `hyphens: auto` met `lang="nl"`;
+  - een taak groeit in hoogte mee, op de rastermaat;
+  - is groeien niet mogelijk, dan krimpt de tekst tot minimaal 10 px; daaronder volgt afkappen met „…” en een tooltip;
+  - bij een ruit telt de ingeschreven rechthoek als tekstvlak;
+  - de berekening is de zuivere functie `fitText` in `src/core/diagram/text.ts`.
+- **Zwembanen**:
+  - horizontaal, op volgorde, met aanpasbare hoogte;
+  - de rol van een vorm volgt uit de baan waarin zijn midden ligt, en wordt bij elke verplaatsing opnieuw bepaald;
+  - een baan verplaatsen neemt de vormen mee;
+  - een baan verwijderen maakt de rol leeg (na bevestiging).
+- **Selectie en bewerken**: Shift-klik en lasso, verwijderen (Delete/Backspace), kopiëren, plakken en dupliceren (Cmd+C/V/D), pijltoetsen (één rastervak; Shift = 1 px), dubbelklik/F2/Enter om tekst te bewerken. Positie en maat zijn ook in het zijpaneel in te vullen.
+- **Ongedaan maken en opnieuw doen** (Cmd+Z / Shift+Cmd+Z) voor alles: model, opmaak, labels, banen en eigenschappen. Minstens 100 stappen per sessie.
+- **Live controle**: `validateModel()` plus tekencontroles. De tekencontroles zijn: beslissing met minder dan 2 uitgangen, uitgangen van een beslissing zonder label, vorm buiten een baan terwijl er banen zijn, notitie verbonden met een lijn. Fouten krijgen een markering op de vorm. *Bevestigen* kan pas zonder fouten.
+- **Concept**: elke wijziging wordt binnen 2 seconden automatisch opgeslagen als concept (los van de bevestigde versies). Bij openen wordt een concept aangeboden („Concept herstellen?”), en de app waarschuwt bij weggaan met niet-bevestigde wijzigingen.
+- **Export**: PNG en SVG van de tekening (fase 3b); PDF, BPMN 2.0 en draw.io in fase 6.
+
+Notities en vrije tekst bestaan alleen in de opmaak: niet in het model, niet in de analyse, niet in AI-invoer.
+
 ### 2.3 Geleerd („Wat heeft de app geleerd”)
 
 - Correctiefactoren per route voor impact en inspanning: aantal casussen, ruwe factor, gedempte factor, of „nog te weinig data (n van 5)”.
@@ -134,6 +162,36 @@ export interface ValidationResult { valid: boolean; issues: ValidationIssue[] }
 ```
 
 Opmerkingen: een BPMN-gateway wordt `DECISION` (ook parallelle gateways; het type van de gateway wordt in `notes` bewaard en een parallelle splitsing krijgt geen kansen). Subprocessen worden in v1 als één `TASK` ingelezen met een waarschuwing.
+
+### 3.0 Opmaak van een tekening (fase 3b)
+
+Het procesmodel blijft leidend; de opmaak wordt apart bewaard per stap-id. Een proces zonder opmaak krijgt `layoutModel()`.
+
+```ts
+// src/core/diagram/types.ts
+export type StepMarker = 'SUBPROCESS' | 'DOCUMENT' | 'MANUAL_INPUT' | 'WAIT';
+// Step krijgt het optionele veld `marker?: StepMarker`. WAIT = wachtstap: de analyse telt de
+// bewerktijd ervan als wachttijd.
+
+export interface ShapeLayout { x: number; y: number; width: number; height: number }
+export interface FlowLayout {
+  sourceSide: 'top' | 'right' | 'bottom' | 'left';
+  targetSide: 'top' | 'right' | 'bottom' | 'left';
+  waypoints?: Array<{ x: number; y: number }>;
+}
+export interface LaneLayout { roleId: string; height: number }   // volgorde = arrayvolgorde
+export interface Annotation { id: string; text: string; x: number; y: number; width: number; height: number; attachedTo?: string }
+export interface DiagramLayout {
+  version: 1;
+  shapes: Record<string, ShapeLayout>;   // stap-id → positie
+  flows: Record<string, FlowLayout>;     // flow-id → kanten en knikpunten
+  lanes: LaneLayout[];
+  annotations: Annotation[];
+  dataShapes: Array<{ id: string; label: string; x: number; y: number; attachedTo: string }>; // → Step.system
+}
+```
+
+Zuivere functies in `src/core/diagram/`: `fitText`, `snapToGrid`, `alignmentGuides`, `laneAt`, `nearestSide`, `modelToDiagram(model, layout?)`, `applyDiagramEdit(model, layout, edit)` en `tidyLayout(model)`. React Flow-types blijven in `src/screens`.
 
 ### 3.1 Modelvalidatie (`validateModel`)
 
@@ -595,6 +653,8 @@ Alle sleutels zijn UUID-tekst; tijden zijn ISO-8601-tekst in UTC; JSON-velden zi
 | `settings` | `key` PK, `value` (JSON) — uurtarief, model, drempels, factoren, gewichten, minCases, k, toestemming. **Nooit de API-sleutel.** |
 | `processes` | `id`, `name`, `domain`, `created_at`, `updated_at`, `current_version_id` |
 | `process_versions` | `id`, `process_id` FK, `version` int, `source_format`, `source_filename`, `model_json`, `confirmed_at` (NULL = concept), `created_at` |
+| `process_layouts` | `process_version_id` PK/FK, `layout_json` (DiagramLayout), `updated_at` — opmaak bij een bevestigde versie (fase 3b) |
+| `process_drafts` | `id` PK, `process_id` (NULL bij een nieuw proces), `name`, `domain`, `model_json` (mag ongeldig zijn), `layout_json`, `source_format`, `updated_at` — automatisch opgeslagen concept; wordt verwijderd na bevestigen (fase 3b) |
 | `analyses` | `id`, `process_version_id` FK, `metrics_json`, `rule_hits_json`, `qualitative` bool, `ai_call_id` FK NULL, `created_at` |
 | `suggestions` | `id`, `analysis_id` FK, `title`, `step_ids_json`, `rule_id`, `explanation`, `effects_json`, `effort`, `it_required`, `risk`, `what_to_measure`, `group` (EASY/HARD), `rank`, `rejected_by_code` bool, `reject_reason_code` |
 | `suggestion_reactions` | `id`, `suggestion_id` FK, `reaction` (ACCEPTED/MODIFIED/REJECTED), `reason_code`, `reason_text`, `modified_json`, `created_at` |
