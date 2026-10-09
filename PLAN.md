@@ -9,8 +9,8 @@ Ontwikkelomgeving: Linux-container (geen scherm, geen macOS). Daar kan: Vitest, 
 | Fase | Status | Notities |
 | --- | --- | --- |
 | 0 Specificatie | klaar | SPEC.md, PLAN.md, CLAUDE.md |
-| 1 Fundament | klaar (wacht op handmatige controle) | zie *Afwijkingen fase 1* |
-| 2 Verbetering beoordelen | klaar (wacht op handmatige controle) | zie *Afwijkingen fase 2* |
+| 1 Fundament | klaar, handmatig gecontroleerd | zie *Afwijkingen fase 1* |
+| 2 Verbetering beoordelen | klaar, handmatig gecontroleerd met de echte API | zie *Afwijkingen fase 2* |
 | 3 Proces invoeren en tonen | open | |
 | 4 Procesanalyse | open | |
 | 5 Leerlus | open | |
