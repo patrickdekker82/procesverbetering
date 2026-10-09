@@ -14,15 +14,24 @@ import {
   type StepRow,
 } from '../core/import';
 import { validateModel, type ProcessModel, type SourceFormat } from '../core/model';
+import { ensureLayout, type DiagramLayout } from '../core/diagram';
 import type { Settings } from '../core/settings';
 import { logAiCall } from '../db/repos/aiCallsRepo';
 import { giveConsent, hasConsent } from '../db/repos/consentRepo';
 import {
   countVersions,
+  deleteDraft,
+  getDraft,
+  getDraftForProcess,
+  getLayout,
   getProcess,
   getVersion,
+  listNewDrafts,
   listProcesses,
   saveConfirmedVersion,
+  saveDraft,
+  saveLayout,
+  type DraftRecord,
   type ProcessRecord,
   type ProcessVersionRecord,
 } from '../db/repos/processesRepo';
@@ -42,7 +51,13 @@ export interface ProcessDetail {
   process: ProcessRecord;
   version: ProcessVersionRecord;
   versionCount: number;
+  /** Stored layout completed for the model (auto-layout when none was stored). */
+  layout: DiagramLayout;
+  /** Unconfirmed changes, newer than the current version. */
+  draft: DraftRecord<DiagramLayout> | null;
 }
+
+export type DraftInput = Omit<DraftRecord<DiagramLayout>, 'updatedAt'>;
 
 export interface ProcessServiceDeps {
   db: Db;
@@ -65,8 +80,22 @@ export function createProcessService(deps: ProcessServiceDeps) {
       if (!process?.currentVersionId) return null;
       const version = await getVersion(db, process.currentVersionId);
       if (!version) return null;
-      return { process, version, versionCount: await countVersions(db, id) };
+      const stored = await getLayout<DiagramLayout>(db, version.id);
+      const draft = await getDraftForProcess<DiagramLayout>(db, id);
+      return {
+        process,
+        version,
+        versionCount: await countVersions(db, id),
+        layout: ensureLayout(version.model, stored),
+        draft: draft && draft.updatedAt > version.createdAt ? draft : null,
+      };
     },
+
+    /** Autosave (SPEC §2.2a): drafts may hold invalid models and are never analysed. */
+    saveDraft: (draft: DraftInput) => saveDraft(db, draft),
+    getDraft: (id: string) => getDraft<DiagramLayout>(db, id),
+    listNewDrafts: () => listNewDrafts<DiagramLayout>(db),
+    deleteDraft: (id: string) => deleteDraft(db, id),
 
     /** Reads any supported file. Never throws; unreadable files give a Dutch error. */
     async importFile(fileName: string, bytes: Uint8Array): Promise<FileOutcome> {
@@ -190,6 +219,10 @@ export function createProcessService(deps: ProcessServiceDeps) {
       model: ProcessModel;
       sourceFormat: SourceFormat;
       sourceFilename: string | null;
+      /** Drawing layout to keep with this version. */
+      layout?: DiagramLayout;
+      /** Draft to remove once the version is stored. */
+      draftId?: string;
     }): Promise<{ ok: true; version: ProcessVersionRecord } | { ok: false; messageNl: string }> {
       const name = input.name.trim();
       if (!name) return { ok: false, messageNl: 'Geef het proces een naam.' };
@@ -199,7 +232,17 @@ export function createProcessService(deps: ProcessServiceDeps) {
         const count = validation.issues.filter((i) => i.severity === 'ERROR').length;
         return { ok: false, messageNl: `Het model heeft nog ${count} fout(en). Los die eerst op.` };
       }
-      return { ok: true, version: await saveConfirmedVersion(db, { ...input, name, model }) };
+      const version = await saveConfirmedVersion(db, {
+        processId: input.processId,
+        name,
+        domain: input.domain,
+        model,
+        sourceFormat: input.sourceFormat,
+        sourceFilename: input.sourceFilename,
+      });
+      if (input.layout) await saveLayout(db, version.id, ensureLayout(model, input.layout));
+      if (input.draftId) await deleteDraft(db, input.draftId);
+      return { ok: true, version };
     },
   };
 }

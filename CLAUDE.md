@@ -5,6 +5,7 @@ Desktop-app voor procesverbetering. Specificatie: SPEC.md. Bouwplan en status: P
 ## Opdrachten
 - `npm run typecheck` · `npm run lint` · `npm test` · `npm run build`
 - `npm run tauri dev` (app) · `npm run tauri build` (alleen op macOS)
+- `npm run e2e` (Playwright, Chromium; op de Mac eerst `npx playwright install chromium`)
 - `npm run eval` (nep-AI) · `npm run eval:live` (echte API, `ANTHROPIC_API_KEY`)
 - `cd src-tauri && cargo check` (Linux vereist `libwebkit2gtk-4.1-dev`)
 

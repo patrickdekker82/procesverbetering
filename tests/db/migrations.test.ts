@@ -18,6 +18,8 @@ const EXPECTED_TABLES = [
   'outcomes',
   'overrides',
   'problem_statements',
+  'process_drafts',
+  'process_layouts',
   'process_versions',
   'processes',
   'prompt_evals',
@@ -42,7 +44,7 @@ describe('migrations', () => {
   it('creates every table from SPEC §9', async () => {
     db = openNodeDb();
     const report = await runMigrations(db);
-    expect(report.applied).toEqual([1, 2]);
+    expect(report.applied).toEqual([1, 2, 3]);
     expect(await tables(db)).toEqual(EXPECTED_TABLES);
   });
 
@@ -80,9 +82,10 @@ describe('migrations', () => {
     db = openNodeDb();
     const report = await runMigrations(db, [
       MIGRATIONS[0]!,
+      MIGRATIONS[2]!,
       { version: 2, name: 'broken', sql: 'CREATE VIRTUAL TABLE x USING does_not_exist(a);', optional: true },
     ]);
-    expect(report).toEqual({ applied: [1], skipped: [2] });
+    expect(report).toEqual({ applied: [1, 3], skipped: [2] });
     expect(await hasFullTextSearch(db)).toBe(false);
     expect(await tables(db)).toEqual(EXPECTED_TABLES);
   });

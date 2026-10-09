@@ -8,7 +8,7 @@ import { useAppState } from '../../state/context';
 import { FormInput } from './FormInput';
 import { DETECTED_NL } from './labels';
 
-type Tab = 'form' | 'text' | 'file';
+type Tab = 'draw' | 'form' | 'text' | 'file';
 
 const TEMPLATE_CSV = [
   TEMPLATE_HEADER.join(';'),
@@ -48,10 +48,13 @@ export function ImportPanel({
   service,
   draftId,
   onImported,
+  onDraw,
 }: {
   service: ProcessService;
   draftId: string;
   onImported: (draft: ImportedDraft) => void;
+  /** Start an empty drawing. */
+  onDraw: () => void;
 }) {
   const { settings } = useAppState();
   const [tab, setTab] = useState<Tab>('file');
@@ -114,6 +117,7 @@ export function ImportPanel({
 
   const tabs: [Tab, string][] = [
     ['file', 'Bestand'],
+    ['draw', 'Tekenen'],
     ['form', 'Formulier'],
     ['text', 'Tekst'],
   ];
@@ -176,6 +180,17 @@ export function ImportPanel({
           >
             Download het Excel/CSV-sjabloon
           </Button>
+        </div>
+      )}
+
+      {tab === 'draw' && (
+        <div className="space-y-3 rounded-lg border border-slate-200 bg-white p-6">
+          <p className="text-sm text-slate-600">
+            Teken het proces zelf met de bekende stroomschemavormen: start, taak, beslissing, einde, zwembanen
+            en meer. Vormen en lijnen klikken netjes aan elkaar vast; je werk wordt automatisch als concept
+            bewaard.
+          </p>
+          <Button onClick={onDraw}>Begin met tekenen</Button>
         </div>
       )}
 

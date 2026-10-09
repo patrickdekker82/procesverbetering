@@ -19,6 +19,12 @@ fn migrations() -> Vec<Migration> {
             sql: include_str!("../migrations/0002_fts.sql"),
             kind: MigrationKind::Up,
         },
+        Migration {
+            version: 3,
+            description: "diagram",
+            sql: include_str!("../migrations/0003_diagram.sql"),
+            kind: MigrationKind::Up,
+        },
     ]
 }
 
@@ -54,6 +60,15 @@ fn save_text_file(path: String, contents: String) -> Result<(), String> {
     std::fs::write(&path, contents).map_err(|e| format!("Opslaan mislukt: {e}"))
 }
 
+/// Writes a binary file (PNG export) to a path the user picked in the save dialog.
+#[tauri::command]
+fn save_binary_file(path: String, contents: Vec<u8>) -> Result<(), String> {
+    if path.trim().is_empty() {
+        return Err("Geen bestandsnaam gekozen.".into());
+    }
+    std::fs::write(&path, contents).map_err(|e| format!("Opslaan mislukt: {e}"))
+}
+
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
     tauri::Builder::default()
@@ -70,7 +85,8 @@ pub fn run() {
             has_api_key,
             get_api_key,
             delete_api_key,
-            save_text_file
+            save_text_file,
+            save_binary_file
         ])
         .run(tauri::generate_context!())
         .expect("error while running Verbeterlus");

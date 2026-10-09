@@ -169,3 +169,102 @@ export async function saveConfirmedVersion(
   );
   return (await getVersion(db, id))!;
 }
+
+// Layouts and drafts (phase 3b) -----------------------------------------------------------------
+
+export async function saveLayout(db: Db, versionId: string, layout: unknown): Promise<void> {
+  await db.execute(
+    `INSERT INTO process_layouts (process_version_id, layout_json, updated_at) VALUES (?, ?, ?)
+     ON CONFLICT(process_version_id) DO UPDATE SET layout_json = excluded.layout_json, updated_at = excluded.updated_at`,
+    [versionId, JSON.stringify(layout), nowIso()],
+  );
+}
+
+export async function getLayout<T>(db: Db, versionId: string): Promise<T | null> {
+  const rows = await db.select<{ layout_json: string }>(
+    'SELECT layout_json FROM process_layouts WHERE process_version_id = ?',
+    [versionId],
+  );
+  return rows[0] ? (JSON.parse(rows[0].layout_json) as T) : null;
+}
+
+export interface DraftRecord<L = unknown> {
+  id: string;
+  processId: string | null;
+  name: string;
+  domain: string;
+  model: ProcessModel;
+  layout: L;
+  sourceFormat: SourceFormat;
+  sourceFilename: string | null;
+  updatedAt: string;
+}
+
+interface DraftRow {
+  id: string;
+  process_id: string | null;
+  name: string;
+  domain: string;
+  model_json: string;
+  layout_json: string;
+  source_format: SourceFormat;
+  source_filename: string | null;
+  updated_at: string;
+}
+
+function toDraft<L>(r: DraftRow): DraftRecord<L> {
+  return {
+    id: r.id,
+    processId: r.process_id,
+    name: r.name,
+    domain: r.domain,
+    model: JSON.parse(r.model_json) as ProcessModel,
+    layout: JSON.parse(r.layout_json) as L,
+    sourceFormat: r.source_format,
+    sourceFilename: r.source_filename,
+    updatedAt: r.updated_at,
+  };
+}
+
+export async function saveDraft(db: Db, draft: Omit<DraftRecord, 'updatedAt'>): Promise<void> {
+  await db.execute(
+    `INSERT INTO process_drafts (id, process_id, name, domain, model_json, layout_json, source_format, source_filename, updated_at)
+     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+     ON CONFLICT(id) DO UPDATE SET name = excluded.name, domain = excluded.domain, model_json = excluded.model_json,
+       layout_json = excluded.layout_json, source_format = excluded.source_format,
+       source_filename = excluded.source_filename, updated_at = excluded.updated_at`,
+    [
+      draft.id,
+      draft.processId,
+      draft.name,
+      draft.domain,
+      JSON.stringify(draft.model),
+      JSON.stringify(draft.layout),
+      draft.sourceFormat,
+      draft.sourceFilename,
+      nowIso(),
+    ],
+  );
+}
+
+export async function getDraft<L>(db: Db, id: string): Promise<DraftRecord<L> | null> {
+  const rows = await db.select<DraftRow>('SELECT * FROM process_drafts WHERE id = ?', [id]);
+  return rows[0] ? toDraft<L>(rows[0]) : null;
+}
+
+export async function getDraftForProcess<L>(db: Db, processId: string): Promise<DraftRecord<L> | null> {
+  const rows = await db.select<DraftRow>('SELECT * FROM process_drafts WHERE process_id = ?', [processId]);
+  return rows[0] ? toDraft<L>(rows[0]) : null;
+}
+
+/** Drafts of processes that were never confirmed. */
+export async function listNewDrafts<L>(db: Db): Promise<DraftRecord<L>[]> {
+  const rows = await db.select<DraftRow>(
+    'SELECT * FROM process_drafts WHERE process_id IS NULL ORDER BY updated_at DESC',
+  );
+  return rows.map((r) => toDraft<L>(r));
+}
+
+export async function deleteDraft(db: Db, id: string): Promise<void> {
+  await db.execute('DELETE FROM process_drafts WHERE id = ?', [id]);
+}

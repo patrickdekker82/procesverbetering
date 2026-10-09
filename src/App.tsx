@@ -22,6 +22,7 @@ export function App() {
             <Route path="/verbeteringen/:id" element={<ImprovementDetailScreen />} />
             <Route path="/processen" element={<ProcessesScreen />} />
             <Route path="/processen/nieuw" element={<ProcessImportScreen />} />
+            <Route path="/processen/concept/:draftId" element={<ProcessImportScreen />} />
             <Route path="/processen/:id" element={<ProcessDetailScreen />} />
             <Route path="/geleerd" element={<LearnedScreen />} />
             <Route path="/instellingen" element={<SettingsScreen />} />

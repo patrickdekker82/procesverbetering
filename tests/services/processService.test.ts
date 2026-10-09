@@ -167,3 +167,77 @@ describe('processService.confirm', () => {
     ).toMatchObject({ ok: false });
   });
 });
+
+describe('drafts and layouts (phase 3b)', () => {
+  it('autosaves an invalid draft, restores it and removes it on confirmation with the layout', async () => {
+    const { db, service } = await setup();
+    const { ensureLayout, applyDiagramEdit } = await import('../../src/core/diagram');
+    const broken = validModel();
+    broken.steps = broken.steps.filter((s) => s.type !== 'END');
+    broken.flows = broken.flows.filter((f) => f.to !== 'e');
+    await service.saveDraft({
+      id: 'd1',
+      processId: null,
+      name: 'Concept',
+      domain: 'KANTOOR',
+      model: broken,
+      layout: ensureLayout(broken),
+      sourceFormat: 'FORM',
+      sourceFilename: null,
+    });
+    expect((await service.listNewDrafts()).map((d) => d.id)).toEqual(['d1']);
+    expect((await service.getDraft('d1'))!.model.steps).toHaveLength(5);
+
+    const model = validModel();
+    const layout = applyDiagramEdit(
+      { model, layout: ensureLayout(model) },
+      { type: 'move', ids: ['t1'], dx: 100, dy: 0 },
+    ).state.layout;
+    const r = await service.confirm({
+      processId: 'd1',
+      name: 'Getekend',
+      domain: 'KANTOOR',
+      model,
+      sourceFormat: 'FORM',
+      sourceFilename: null,
+      layout,
+      draftId: 'd1',
+    });
+    expect(r.ok).toBe(true);
+    expect(await service.listNewDrafts()).toEqual([]);
+    const detail = (await service.detail('d1'))!;
+    expect(detail.layout.shapes.t1).toEqual(layout.shapes.t1);
+    expect(detail.draft).toBeNull();
+    expect(await db.select('SELECT COUNT(*) AS n FROM process_layouts')).toEqual([{ n: 1 }]);
+  });
+
+  it('offers a draft of an existing process only when it is newer than the version', async () => {
+    const { service } = await setup();
+    const { ensureLayout } = await import('../../src/core/diagram');
+    await service.confirm({
+      processId: 'p1',
+      name: 'A',
+      domain: 'KANTOOR',
+      model: validModel(),
+      sourceFormat: 'BPMN',
+      sourceFilename: null,
+    });
+    expect((await service.detail('p1'))!.draft).toBeNull();
+    await new Promise((r) => setTimeout(r, 5));
+    const edited = validModel();
+    edited.steps[1]!.name = 'Gewijzigd';
+    await service.saveDraft({
+      id: 'x',
+      processId: 'p1',
+      name: 'A',
+      domain: 'KANTOOR',
+      model: edited,
+      layout: ensureLayout(edited),
+      sourceFormat: 'BPMN',
+      sourceFilename: null,
+    });
+    const d = (await service.detail('p1'))!;
+    expect(d.draft?.model.steps[1]!.name).toBe('Gewijzigd');
+    expect(d.layout.shapes.t1).toBeDefined();
+  });
+});

@@ -12,6 +12,7 @@ export const SOURCE_NL: Record<SourceFormat, string> = {
   DOCX: 'Word (Claude)',
   IMAGE: 'Afbeelding (Claude)',
   PDF: 'PDF (Claude)',
+  DRAWING: 'Getekend',
 };
 
 export const DETECTED_NL: Record<DetectedFormat, { name: string; reliability: string; ai: boolean }> = {

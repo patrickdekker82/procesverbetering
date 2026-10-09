@@ -1,5 +1,6 @@
 import init from '../../src-tauri/migrations/0001_init.sql?raw';
 import fts from '../../src-tauri/migrations/0002_fts.sql?raw';
+import diagram from '../../src-tauri/migrations/0003_diagram.sql?raw';
 import type { Db } from './types';
 
 export interface MigrationDef {
@@ -14,6 +15,7 @@ export interface MigrationDef {
 export const MIGRATIONS: MigrationDef[] = [
   { version: 1, name: 'init', sql: init },
   { version: 2, name: 'fts', sql: fts, optional: true },
+  { version: 3, name: 'diagram', sql: diagram },
 ];
 
 export interface MigrationReport {

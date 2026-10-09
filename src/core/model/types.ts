@@ -3,9 +3,11 @@
 export type StepType = 'START' | 'END' | 'TASK' | 'DECISION';
 /** CUSTOMER = klantwaarde, BUSINESS = bedrijfsnoodzakelijk, NONE = geen waarde. */
 export type ValueClass = 'CUSTOMER' | 'BUSINESS' | 'NONE';
+/** Visual/semantic variant of a TASK drawn in the editor; WAIT = waiting step (counts as waiting time). */
+export type StepMarker = 'SUBPROCESS' | 'DOCUMENT' | 'MANUAL_INPUT' | 'WAIT';
 export type Domain = 'KANTOOR' | 'KLANT' | (string & {});
 export type SourceFormat =
-  'FORM' | 'TEXT' | 'BPMN' | 'DRAWIO' | 'MERMAID' | 'VSDX' | 'TABLE' | 'DOCX' | 'IMAGE' | 'PDF';
+  'FORM' | 'TEXT' | 'BPMN' | 'DRAWIO' | 'MERMAID' | 'VSDX' | 'TABLE' | 'DOCX' | 'IMAGE' | 'PDF' | 'DRAWING';
 
 export interface Role {
   id: string;
@@ -30,6 +32,7 @@ export interface Step {
   /** Controle- of goedkeuringsstap; undefined = afleiden uit de naam. */
   isControl?: boolean;
   notes?: string;
+  marker?: StepMarker;
   source?: { format: SourceFormat; ref?: string };
 }
 

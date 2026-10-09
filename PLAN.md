@@ -12,7 +12,7 @@ Ontwikkelomgeving: Linux-container (geen scherm, geen macOS). Daar kan: Vitest, 
 | 1 Fundament | klaar, handmatig gecontroleerd | zie *Afwijkingen fase 1* |
 | 2 Verbetering beoordelen | klaar, handmatig gecontroleerd met de echte API | zie *Afwijkingen fase 2* |
 | 3 Proces invoeren en tonen | klaar (wacht op handmatige controle) | zie *Afwijkingen fase 3* |
-| 3b Proces tekenen | open | onderbouwing: docs/onderzoek-tekenmodule.md |
+| 3b Proces tekenen | klaar (wacht op handmatige controle) | zie *Afwijkingen fase 3b*; onderbouwing: docs/onderzoek-tekenmodule.md |
 | 4 Procesanalyse | open | |
 | 5 Leerlus | open | |
 | 6 Afwerking | open | |
@@ -138,6 +138,19 @@ Toegevoegd op verzoek van Patrick. Onderzoek en keuzes: `docs/onderzoek-tekenmod
 - De app afsluiten tijdens het tekenen en het concept herstellen.
 
 **Buiten deze fase:** lijnen die om vormen heen gaan, meerdere pagina's, thema's, vrije vormen, en export naar BPMN, draw.io en PDF (fase 6).
+
+**Afwijkingen fase 3b**
+- Geïmporteerde coördinaten (draw.io, vsdx, BPMN-DI) worden nog niet overgenomen: een geïmporteerd proces krijgt bij de eerste keer openen een automatische opmaak (`tidyLayout`, op basis van `layoutModel`). Daarna wordt de opmaak per versie bewaard.
+- Uitlijnen gebeurt op het midden van vormen (raster 10 px); hulplijnen tonen gelijke randen en middens tijdens het slepen.
+- Vergroten alleen via de vier hoeken, zodat de verbindingspunten midden op elke zijde vrij blijven.
+- Verbinden kan door van een verbindingspunt naar de vorm te slepen (ook op het vlak van de vorm), met de pijlknoppen/Alt + pijltoets, of in het zijpaneel. Een lijn naar *Start* of vanuit *Einde* wordt geweigerd.
+- Een vorm verwijderen verwijdert ook zijn lijnen; er worden geen lijnen automatisch doorverbonden (voorspelbaarder, ongedaan te maken).
+- Zwembaanhoogte via het zijpaneel, niet door slepen aan de baanrand. Lasso met Shift + slepen.
+- Tekst: eerst zonder woordafbreking op 13 → 10 px; pas daarna afbreken met koppelteken, en als laatste afkappen met "…" (volledige tekst in de tooltip). Taken worden automatisch hoger (tot 4 regels) als de tekst niet past.
+- Concepten: in de app (SQLite) blijvend; in de browserversie (sql.js) alleen in het geheugen, dus een herlaadtest in Playwright is vervangen door "concept verder tekenen via de proceslijst". Herstellen na afsluiten wordt handmatig gecontroleerd.
+- Playwright (`npm run e2e`, Chromium) draait 5 scenario's tegen een productie-build (`vite preview`, poort 4173, altijd een nieuwe build). Op de Mac eenmalig `npx playwright install chromium`.
+- Export PNG/SVG via `html-to-image` en een eigen Rust-commando `save_binary_file`. De bundel is ~1,5 MB (één bestand); opsplitsen kan in fase 6.
+- Het oude diagram (`ProcessDiagram`) en de lijsteditor (`ProcessEditor`) zijn verwijderd; de teken-editor vervangt beide.
 
 ## Fase 4 — Procesanalyse
 
